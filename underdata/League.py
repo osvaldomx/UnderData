@@ -29,13 +29,15 @@ class League():
 
     URL_BASE = "https://www.understat.com/league/"
     league = None
+    year = ""
     seasons = []
     table = None
     table_goals = None
 
 
-    def __init__(self, league='epl'):
+    def __init__(self, league='epl', year=""):
         self.league = LEAGUES[league]
+        self.year = year
 
     def set_seasons(self, driver):
         """Function to set seasons availables
@@ -141,7 +143,7 @@ class League():
         """
         try:
             driver = webdriver.Firefox()
-            driver.get(self.URL_BASE + self.league)
+            driver.get(self.URL_BASE + self.league + "/" + self.year)
             self.set_seasons(driver)
             self.set_table(driver)
             self.set_score_players(driver)

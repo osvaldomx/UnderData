@@ -1,0 +1,29 @@
+1635404860655	geckodriver	INFO	Listening on 127.0.0.1:43009
+1635404860681	mozrunner::runner	INFO	Running command: "/usr/bin/firefox" "--marionette" "--remote-debugging-port" "44501" "-no-remote" "-profile" "/tmp/rust_mozprofilebvnJdi"
+1635404863038	Marionette	INFO	Marionette enabled
+console.warn: SearchSettings: "get: No settings file exists, new profile?" (new NotFoundError("Could not open the file at /tmp/rust_mozprofilebvnJdi/search.json.mozlz4", (void 0)))
+DevTools listening on ws://localhost:44501/devtools/browser/ec34d85f-bcb6-419c-ae0c-da6f26ecc9fa
+1635404866420	Marionette	INFO	Listening on port 42975
+1635404866527	RemoteAgent	WARN	TLS certificate errors will be ignored for this session
+JavaScript warning: https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js, line 2: Using //@ to indicate sourceMappingURL pragmas is deprecated. Use //# instead
+JavaScript warning: https://understat.com/js/pagination.js?v=2, line 193: unreachable code after return statement
+JavaScript warning: https://pagead2.googlesyndication.com/bg/rYsSliro57HlqQ0w1drzgXd5CbzCCwb6qdFIuIj2zIs.js line 1 > eval line 7689 > eval, line 1: WEBGL_debug_renderer_info is deprecated in Firefox and will be removed. Please use RENDERER.
+1635404880018	Marionette	INFO	Stopped listening on port 42975
+JavaScript error: resource:///modules/Interactions.jsm, line 201: NS_ERROR_FAILURE: Component returned failure code: 0x80004005 (NS_ERROR_FAILURE) [nsIUserIdleService.removeIdleObserver]
+JavaScript error: , line 0: TypeError: NetworkError when attempting to fetch resource.
+1635404907543	geckodriver	INFO	Listening on 127.0.0.1:51393
+1635404907549	mozrunner::runner	INFO	Running command: "/usr/bin/firefox" "--marionette" "--remote-debugging-port" "42089" "-no-remote" "-profile" "/tmp/rust_mozprofileJDhPAN"
+1635404909992	Marionette	INFO	Marionette enabled
+console.warn: SearchSettings: "get: No settings file exists, new profile?" (new NotFoundError("Could not open the file at /tmp/rust_mozprofileJDhPAN/search.json.mozlz4", (void 0)))
+DevTools listening on ws://localhost:42089/devtools/browser/ce540f6a-42f4-4977-8089-3ab0abc0a55a
+1635404913357	Marionette	INFO	Listening on port 37779
+1635404913398	RemoteAgent	WARN	TLS certificate errors will be ignored for this session
+JavaScript warning: https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js, line 2: Using //@ to indicate sourceMappingURL pragmas is deprecated. Use //# instead
+JavaScript warning: https://understat.com/js/pagination.js?v=2, line 193: unreachable code after return statement
+JavaScript warning: https://pagead2.googlesyndication.com/bg/rYsSliro57HlqQ0w1drzgXd5CbzCCwb6qdFIuIj2zIs.js line 1 > eval line 1198 > eval line 1 > eval, line 1: WEBGL_debug_renderer_info is deprecated in Firefox and will be removed. Please use RENDERER.
+1635404922993	Marionette	INFO	Stopped listening on port 37779
+JavaScript error: resource:///modules/Interactions.jsm, line 201: NS_ERROR_FAILURE: Component returned failure code: 0x80004005 (NS_ERROR_FAILURE) [nsIUserIdleService.removeIdleObserver]
+JavaScript error: , line 0: TypeError: NetworkError when attempting to fetch resource.
+
+###!!! [Parent][RunMessage] Error: Channel closing: too late to send/recv, messages will be lost
+
