@@ -115,7 +115,7 @@ class Team():
         """
         table = {}
         thead = driver.find_elements(By.CSS_SELECTOR, "#team-players > table > thead > tr > th")
-        table['N'] = []
+        table['Id'] = []
 
         for idx in range(1, len(thead)):
             table[thead[idx].text] = []
@@ -124,7 +124,9 @@ class Team():
 
         for idx in range(0, len(tbody), 13):
             if tbody[idx].text:
-                table['N'].append(int(tbody[idx].text))
+                table['Id'].append(int(tbody[idx+1].find_element(By.CSS_SELECTOR,
+                                    "#team-players > table > tbody > tr > td.player-title > a").\
+                                    get_attribute("href").split("/")[-1]))
                 table['Player'].append(tbody[idx+1].text)
                 table['Pos'].append(tbody[idx+2].text)
                 table['Apps'].append(int(tbody[idx+3].text))

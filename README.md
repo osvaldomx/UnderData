@@ -29,12 +29,12 @@ To get general information of a league:
 
 ```python
 # import
-from underdata.League import League
-
-league = League(league="epl", year="2018")
-league.get_info()
+>>> from underdata.League import League
+>>> league = League(league="epl", year="2018")
+>>> league.get_info()
+'Get info of EPL'
 ```
-this will open a browser with geckodriver with the purpose of get general information of the league `EPL` in year `2018`. To access to the information, run:
+this will open a browser with `geckodriver` with the purpose of get general information of the league `EPL` in the year `2018`. To access to the information, run:
 
 ```python
 >>> league.seasons                  # Get seasons availables in www.understats.com
@@ -52,6 +52,40 @@ this will open a browser with geckodriver with the purpose of get general inform
     N                     Player             Team  Apps   Min   G   A          xG          xA  xG90  xA90
 0   1  Pierre-Emerick Aubameyang          Arsenal    36  2740  22   5  23.55+1.55   4.99-0.01  0.77  0.16
 1   2                 Sadio Mané        Liverpool    36  3100  22   1  16.76-5.24   5.12+4.12  0.49  0.15
+.
+.
+.
+```
+
+#### Team
+
+To get general information of a league:
+
+```python
+# import
+>>> from underdata.Team import Team
+>>> team = Team(team="liverpool", year="2018")
+>>> Team.get_info()
+'Get info of Liverpool'
+```
+this will open a browser with `geckodriver` with the purpose of get general information of the team `Liverpool` in the year `2018`. To access to the information, run:
+
+```python
+>>> team.games                      # Get info of games of team in specific year
+    week          date                     home                     away  goals_home  goals_away  xG_home  xG_away result                               url
+0      1  Aug 12, 2018                liverpool                 West Ham           4           0     4.34     0.40    win  https://understat.com/match/9205
+1      2  Aug 20, 2018           Crystal Palace                liverpool           0           2     0.37     2.82    win  https://understat.com/match/9216
+.
+.
+.
+
+>>> team.player_stats              # Get info of all team players in specific year
+      Id                   Player  Pos  Apps   Min   G   A  Sh90  KP90          xG          xA  xG90  xA90
+0    838               Sadio Mané  F M    36  3100  22   1  2.53  1.31  16.76-5.24   5.12+4.12  0.49  0.15
+1   1250            Mohamed Salah    F    38  3274  22   8  3.77  1.87  21.79-0.21  10.47+2.47  0.60  0.29
+.
+.
+.
 ```
 
 ## Contributing
