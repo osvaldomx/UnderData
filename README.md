@@ -18,8 +18,9 @@ This package use `selenium` therefore you will have to install [geckodriver](htt
 
 | Object | url |
 | ------ | --- |
-| understat.League() | `https://www.understat.com/league/<league_name>/<year>` |
-| understat.Team() | `https://www.understat.com/team/<team_name>/<year>` |
+| underdata.League() | `https://www.understat.com/league/<league_name>/<year>` |
+| underdata.Team() | `https://www.understat.com/team/<team_name>/<year>` |
+| underdata.Player()| `https://www.understat.com/player/<player_id>` |
 
 ### Examples
 
@@ -83,6 +84,37 @@ this will open a browser with `geckodriver` with the purpose of get general info
       Id                   Player  Pos  Apps   Min   G   A  Sh90  KP90          xG          xA  xG90  xA90
 0    838               Sadio Mané  F M    36  3100  22   1  2.53  1.31  16.76-5.24   5.12+4.12  0.49  0.15
 1   1250            Mohamed Salah    F    38  3274  22   8  3.77  1.87  21.79-0.21  10.47+2.47  0.60  0.29
+.
+.
+.
+```
+
+#### Player
+
+To get general information of a player:
+
+```python
+# import
+>>> from underdata.Player import Player
+>>> player = Player(player_id="1250")
+>>> player.get_info()
+'Get info of Mohamed Salah'
+```
+this will open a browser with `geckodriver` with the purpose of get general information of the player with id `1250`. To access to the information, run:
+
+```python
+>>> player.table_seasons                    # Get info of seasons of the player
+      Season        Team  Apps   Min   G   A  Sh90  KP90          xG          xA  xG90  xA90
+0  2021/2022   Liverpool     9   810  10   5  4.44  2.33   7.50-2.50   3.14-1.86  0.83  0.35
+1  2020/2021   Liverpool    37  3085  22   5  3.68  1.60  20.25-1.75   6.53+1.53  0.59  0.19
+.
+.
+.
+
+>>> player.player_history                   # Get info of all appears of the player
+           Date               Home Score             Away  Pos Min Sh  G KP  A         xG         xA
+0    2021-10-24  Manchester United   0-5        Liverpool  FWR  90  7  3  2  1  2.25-0.75  0.51-0.49
+1    2021-10-16            Watford   0-5        Liverpool  FWR  90  5  1  2  1  0.40-0.60  0.36-0.64
 .
 .
 .
