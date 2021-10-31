@@ -20,7 +20,8 @@ This package use `selenium` therefore you will have to install [geckodriver](htt
 | ------ | --- |
 | underdata.League() | `https://www.understat.com/league/<league_name>/<year>` |
 | underdata.Team() | `https://www.understat.com/team/<team_name>/<year>` |
-| underdata.Player()| `https://www.understat.com/player/<player_id>` |
+| underdata.Player() | `https://www.understat.com/player/<player_id>` |
+| underdata.Match() | `https://www.understat.com/player/<match_id>` |
 
 ### Examples
 
@@ -118,6 +119,31 @@ this will open a browser with `geckodriver` with the purpose of get general info
 .
 .
 .
+```
+
+#### Match
+
+To get general information of a Match:
+
+```python
+# import
+>>> from underdata.Match import Match
+>>> match = Match(match_id="16463")
+>>> match.get_info()
+'Get info of Manchester United vs Liverpool'
+```
+this will open a browser with `geckodriver` with the purpose of get general information of the match with id `16463`. To access to the information, run:
+```python
+>>> match.match_stats                    # Get stats of the match
+                     Player  Pos  Min  Sh  G  KP  A         xG         xA
+0              David de Gea   GK   90   0  0   0  0       0.00       0.00
+1         Aaron Wan-Bissaka   DR   90   0  0   0  0       0.00       0.00
+2           Victor Lindelöf   DC   90   0  0   0  0       0.00       0.00
+...
+25               Sadio Mané  Sub    8   1  0   0  0  0.11+0.11       0.00
+26  Alex Oxlade-Chamberlain  Sub   21   1  0   1  0  0.02+0.02  0.04+0.04
+27             Curtis Jones  Sub   64   1  0   1  0  0.15+0.15  0.03+0.03
+
 ```
 
 ## Contributing

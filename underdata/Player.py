@@ -82,6 +82,16 @@ class Player():
 
     def get_info(self) -> str:
         """Function to get general information of specific player
+
+        Raises
+        ------
+        exc : Exception
+            Exception if something was wrong.
+
+        Returns
+        -------
+        str : str
+            Success string.
         """
         try:
             driver = webdriver.Firefox()
