@@ -6,7 +6,7 @@ with open("README.md", "r") as file:
 setuptools.setup(
     name="underdata",
     version="0.1.2",
-    author="osvaldomx",
+    author="Osvaldo Trujillo",
     author_email="osvaldo.trujillo.ingenieria@gmail.com",
     description="Scraping data package for www.understat.com",
     long_description=long_description,
