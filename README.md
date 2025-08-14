@@ -1,162 +1,135 @@
+# ⚽️ Understat 
+
 [![License: MIT](https://img.shields.io/github/license/osvaldomx/underdata)](https://opensource.org/licenses/MIT)
 ![Python: 3.9](https://img.shields.io/badge/python-3.9-informational)
 ![PyPI](https://img.shields.io/pypi/v/understat)
-![Selenium: 4.0](https://img.shields.io/badge/selenium-4.0.0-informational)
 [![PyPI Downloads](https://static.pepy.tech/badge/underdata)](https://pepy.tech/projects/underdata)
 
+---
+A clean, fast, and dependency-free Python client for football analytics data from [Understat](https://understat.com/).
 
-# underdata
-Python package for get data of [www.understat.com](www.understat.com). There are available 6 european leagues: **Premier League**, **La Liga**, **Bundesliga**, **Serie A**, **Ligue 1** and **Russian Premier League** from season 2014/2015.
+Understat provides a simple, object-oriented interface to access detailed football statistics, including Expected Goals (xG), match results, and individual player performance. It processes the data into clean, ready-to-use Pandas DataFrames, making it perfect for data analysis, visualizations, and modeling. There are available 6 european leagues: **Premier League**, **La Liga**, **Bundesliga**, **Serie A**, **Ligue 1** and **Russian Premier League** from season 2014/2015.
 
-___
-### Note
+---
+### 🎯 Key Features 
+
+* **League-Level Data**: Get full season standings, match schedules, and player stats for major leagues.
+* **Team-Specific Analysis**: Access a team's complete match history and seasonal roster.
+* **Detailed Player Statistics**: Retrieve game-by-game logs and individual shot data for any player.
+* **Granular Match Data**: Pull shot maps, lineups, and key events from a single match.
+* **Pandas Integration**: All data is delivered in structured and intuitive Pandas DataFrames.
+* **Lightweight**: No browser or external driver dependencies required.
+
+---
+
+### 🔖 Note
 This package is in development yet, then can change.
 ___
 
-## Installation
+### 🚀 Installation
 To install the package:
-~~~sh
+```sh
 pip install underdata
-~~~
+```
 
 or:
-~~~sh
+```sh
 git clone git@github.com:osvaldomx/UnderData.git
 cd understat
 python setup.py install
-~~~
-This package use `selenium` therefore you will have to install [geckodriver](https://github.com/mozilla/geckodriver/releases).
+```
+---
 
-## Getting started
+### 🛫 Quick Start & Usage 
+
+The library is designed to be intuitive. Here are a few examples to get you started.
 
 | Object             | url                                                     |
 | -------------------| ------------------------------------------------------- |
-| underdata.League() | `https://www.understat.com/league/<league_name>/<year>` |
-| underdata.Team()   | `https://www.understat.com/team/<team_name>/<year>`     |
-| underdata.Player() | `https://www.understat.com/player/<player_id>`          |
-| underdata.Match()  | `https://www.understat.com/player/<match_id>`           |
+| underdata.league() | `https://www.understat.com/league/<league_name>/<year>` |
+| underdata.team()   | `https://www.understat.com/team/<team_name>/<year>`     |
+| underdata.player() | `https://www.understat.com/player/<player_id>`          |
+| underdata.match()  | `https://www.understat.com/player/<match_id>`           |
 
-### Examples
 
-#### League
+#### 1. Get League Standings
 
-To get general information of a league:
-
+Analyze an entire league's performance. The `get_teams()` method can provide a basic or advanced statistical table.
 ```python
-# import
->>> from underdata.League import League
->>> league = League(league="epl", year="2018")
->>> league.get_info()
-'Get info of EPL'
-```
-this will open a browser with `geckodriver` with the purpose of get general information of the league `EPL` in the year `2018`. To access to the information, run:
+from underdata.league import League
 
-```python
->>> league.seasons                  # Get seasons availables in www.understats.com
-['2021', '2020', '2019', '2018', '2017', '2016', '2015', '2014']
+# Initialize the league for a specific season
+la_liga = League(league_name="La_liga", season=2023)
 
->>> league.table                    # Get the current qualification table for specific year
-     N                 Team   M   W   D   L   G  GA  PTS          xG          xGA         xPTS
-0    1      Manchester City  38  32   2   4  95  23   98  93.72-1.28   25.73+2.73   90.64-7.36
-1    2            Liverpool  38  30   7   1  89  22   97  79.46-9.54   29.15+7.15  83.45-13.55
-.
-.
-.
+# Get the advanced standings table
+teams_df = la_liga.get_teams(advanced=True)
 
->>> league.table_goals              # Get top-10 of scorers
-    N              Player         Team  Apps   Min   G   A          xG          xA  xG90  xA90
-0   1          Aubameyang      Arsenal    36  2740  22   5  23.55+1.55   4.99-0.01  0.77  0.16
-1   2          Sadio Mané    Liverpool    36  3100  22   1  16.76-5.24   5.12+4.12  0.49  0.15
-.
-.
-.
+print("La Liga 2023/2024 Final Standings (Advanced Stats)")
+print(teams_df.head())
 ```
 
-#### Team
+#### 2. Analyze a Specific Team
 
-To get general information of a league:
-
+Drill down into a single team's performance over a season.
 ```python
-# import
->>> from underdata.Team import Team
->>> team = Team(team="liverpool", year="2018")
->>> Team.get_info()
-'Get info of Liverpool'
-```
-this will open a browser with `geckodriver` with the purpose of get general information of the team `Liverpool` in the year `2018`. To access to the information, run:
+from underdata.team import Team
 
-```python
->>> team.games                      # Get info of games of team in specific year
-    week          date                  home             away  goals_home  goals_away  xG_home
-0      1  Aug 12, 2018             liverpool         West Ham           4           0     4.34
-1      2  Aug 20, 2018        Crystal Palace        liverpool           0           2     0.37
-.
-.
-.
+# Initialize a specific team
+real_madrid = Team(team_name="Real Madrid", season=2023)
 
->>> team.player_stats              # Get info of all team players in specific year
-      Id           Player  Pos  Apps   Min   G   A  Sh90  KP90          xG          xA  xG90
-0    838       Sadio Mané  F M    36  3100  22   1  2.53  1.31  16.76-5.24   5.12+4.12  0.49
-1   1250    Mohamed Salah    F    38  3274  22   8  3.77  1.87  21.79-0.21  10.47+2.47  0.60
-.
-.
-.
+# Get the team's complete match history
+match_history_df = real_madrid.get_match_history()
+
+print("Real Madrid's Last 5 Matches of the Season:")
+print(match_history_df.tail())
 ```
 
-#### Player
+#### 3. Get Detailed Player Data
 
-To get general information of a player:
-
+Analyze a single player's performance, including their shot data, perfect for creating shot maps.
 ```python
-# import
->>> from underdata.Player import Player
->>> player = Player(player_id="1250")
->>> player.get_info()
-'Get info of Mohamed Salah'
-```
-this will open a browser with `geckodriver` with the purpose of get general information of the player with id `1250`. To access to the information, run:
+from soccermetrics.player import Player
 
-```python
->>> player.table_seasons                    # Get info of seasons of the player
-      Season        Team  Apps   Min   G   A  Sh90  KP90          xG          xA  xG90  xA90
-0  2021/2022   Liverpool     9   810  10   5  4.44  2.33   7.50-2.50   3.14-1.86  0.83  0.35
-1  2020/2021   Liverpool    37  3085  22   5  3.68  1.60  20.25-1.75   6.53+1.53  0.59  0.19
-.
-.
-.
+# Initialize a player using their Understat ID (e.g., Jude Bellingham's ID is 8369)
+bellingham = Player(player_id=8369)
 
->>> player.player_history                   # Get info of all appears of the player
-         Date               Home Score         Away  Pos Min Sh  G KP  A         xG         xA
-0  2021-10-24  Manchester United   0-5    Liverpool  FWR  90  7  3  2  1  2.25-0.75  0.51-0.49
-1  2021-10-16            Watford   0-5    Liverpool  FWR  90  5  1  2  1  0.40-0.60  0.36-0.64
-.
-.
-.
+# Get all shots from the 2023 season
+bellingham_shots = bellingham.get_shot_data(season=2023)
+
+print(f"Jude Bellingham took {len(bellingham_shots)} shots in the 2023/2024 season.")
+print(bellingham_shots[['date', 'result', 'xG', 'shotType']].head())
 ```
 
-#### Match
+#### 4. Analyze a Single Match
 
-To get general information of a Match:
-
+Get all the shot data and lineups from a specific match using its ID.
 ```python
-# import
->>> from underdata.Match import Match
->>> match = Match(match_id="16463")
->>> match.get_info()
-'Get info of Manchester United vs Liverpool'
-```
-this will open a browser with `geckodriver` with the purpose of get general information of the match with id `16463`. To access to the information, run:
-```python
->>> match.match_stats                    # Get stats of the match
-                     Player  Pos  Min  Sh  G  KP  A         xG         xA
-0              David de Gea   GK   90   0  0   0  0       0.00       0.00
-1         Aaron Wan-Bissaka   DR   90   0  0   0  0       0.00       0.00
-2           Victor Lindelöf   DC   90   0  0   0  0       0.00       0.00
-...
-25               Sadio Mané  Sub    8   1  0   0  0  0.11+0.11       0.00
-26  Alex Oxlade-Chamberlain  Sub   21   1  0   1  0  0.02+0.02  0.04+0.04
-27             Curtis Jones  Sub   64   1  0   1  0  0.15+0.15  0.03+0.03
+from soccermetrics.match import Match
 
-```
+# Initialize a match using its Understat ID (e.g., a Real Madrid vs Barcelona match)
+el_clasico = Match(match_id=21817)
 
-## Contributing
+# Get all shots from the match
+shot_data = el_clasico.get_shot_data()
+
+print(f"There were a total of {len(shot_data)} shots in the match.")
+```
+---
+### ✅ Contributing
+
+Contributions are welcome! If you'd like to help improve Underdata, please follow these steps:
+
+1. Open an Issue: Before starting any work, please open an issue on GitHub to discuss the proposed change or feature. This helps ensure that your work aligns with the project's goals.
+
+2. Fork the Repository: Fork the project to your own GitHub account.
+
+3. Create a Feature Branch: Create a new branch for your changes (git checkout -b feat/YourAmazingFeature).
+
+4. Develop: Make your changes and add tests to cover them.
+
+5. Submit a Pull Request: Push your branch to your fork and open a pull request back to the main repository.
+---
+### License
+
+This project is licensed under the MIT License - see the `LICENSE` file for details.
+
