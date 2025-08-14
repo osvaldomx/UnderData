@@ -2,6 +2,7 @@
 ![Python: 3.9](https://img.shields.io/badge/python-3.9-informational)
 ![PyPI](https://img.shields.io/pypi/v/understat)
 ![Selenium: 4.0](https://img.shields.io/badge/selenium-4.0.0-informational)
+[![PyPI Downloads](https://static.pepy.tech/badge/underdata)](https://pepy.tech/projects/underdata)
 
 
 # underdata
