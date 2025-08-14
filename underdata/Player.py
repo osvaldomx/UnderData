@@ -1,107 +1,89 @@
 """
-UnderData v0.1
+Defines the Player class for obtaining detailed data for a single player.
 """
+
 import pandas as pd
+from typing import Dict, List, Any
+from . import client
 
-from selenium import webdriver
-from selenium.webdriver.common.by import By
 
-class Player():
-    """Class Player
+class Player:
     """
-    URL_BASE = "https://www.understat.com/player/"
-    player_id = None
-    player_name = None
-    table_seasons = {}
-    player_history = {}
+    Represents a player, providing access to their match history and shot data.
 
-    def __init__(self, player_id="2097") -> None:
-        self.player_id = player_id
+    The class is initialized with a player's unique Understat ID.
+    """
+    BASE_URL = "https://understat.com/player"
 
-    def _set_player_name(self, driver) -> None:
-        self.player_name = driver.find_element(By.CSS_SELECTOR, "#header").text
-
-    def _set_table_seasons(self, driver) -> None:
-        table = {}
-        thead = driver.find_elements(By.CSS_SELECTOR, "#player-groups > table > thead > tr > th")
-
-        for idx in range(1, len(thead)):
-            table[thead[idx].text] = []
-
-        tbody = driver.find_elements(By.CSS_SELECTOR, "#player-groups > table > tbody > tr > td")
-
-        for idx in range(1, len(tbody)-13, 13):
-            table[list(table.keys())[0]].append(tbody[idx].text)
-            table[list(table.keys())[1]].append(tbody[idx+1].text)
-            table[list(table.keys())[2]].append(int(tbody[idx+2].text))
-            table[list(table.keys())[3]].append(int(tbody[idx+3].text))
-            table[list(table.keys())[4]].append(int(tbody[idx+4].text))
-            table[list(table.keys())[5]].append(int(tbody[idx+5].text))
-            table[list(table.keys())[6]].append(float(tbody[idx+6].text))
-            table[list(table.keys())[7]].append(float(tbody[idx+7].text))
-            table[list(table.keys())[8]].append(tbody[idx+8].text)
-            table[list(table.keys())[9]].append(tbody[idx+9].text)
-            table[list(table.keys())[10]].append(float(tbody[idx+10].text))
-            table[list(table.keys())[11]].append(float(tbody[idx+11].text))
-
-        self.table_seasons = pd.DataFrame(table)
-
-    def _set_player_history(self, driver) -> None:
-        table = {}
-        thead = driver.find_elements(By.CSS_SELECTOR, "#player-history > table > thead > tr > th")
-
-        for idx in range(1, len(thead)):
-            table[thead[idx].text] = []
-
-        pages = int(driver.find_elements(By.CSS_SELECTOR, ".pagination li")[-1].text)
-
-        for page in range(2, pages+2):
-            tbody = driver.find_elements(By.CSS_SELECTOR,
-                                            "#player-history > table > tbody > tr > td")
-            for idx in range(1, len(tbody), 13):
-                if tbody[idx-1].text:
-                    table[list(table.keys())[0]].append(tbody[idx].text)
-                    table[list(table.keys())[1]].append(tbody[idx+1].text)
-                    table[list(table.keys())[2]].append(tbody[idx+2].text)
-                    table[list(table.keys())[3]].append(tbody[idx+3].text)
-                    table[list(table.keys())[4]].append(tbody[idx+4].text)
-                    table[list(table.keys())[5]].append(tbody[idx+5].text)
-                    table[list(table.keys())[6]].append(tbody[idx+6].text)
-                    table[list(table.keys())[7]].append(tbody[idx+7].text)
-                    table[list(table.keys())[8]].append(tbody[idx+8].text)
-                    table[list(table.keys())[9]].append(tbody[idx+9].text)
-                    table[list(table.keys())[10]].append(tbody[idx+10].text)
-                    table[list(table.keys())[11]].append(tbody[idx+11].text)
-
-            if page != pages+1:
-                element = driver.find_element(By.CSS_SELECTOR, ".page[data-page='"+str(page)+"']")
-                element.click()
-                print("click in page "+str(page), end="\r")
-
-        self.player_history = pd.DataFrame(table)
-
-    def get_info(self) -> str:
-        """Function to get general information of specific player
-
-        Raises
-        ------
-        exc : Exception
-            Exception if something was wrong.
-
-        Returns
-        -------
-        str : str
-            Success string.
+    def __init__(self, player_id: int):
         """
-        try:
-            driver = webdriver.Firefox()
-            driver.get(self.URL_BASE + self.player_id)
-            self._set_player_name(driver)
-            self._set_table_seasons(driver)
-            self._set_player_history(driver)
-        except Exception as exc:
-            raise exc
-        finally:
-            driver.quit()
+        Initializes the Player object and loads all their data.
 
-        return "Get info of " + self.player_name
+        Args:
+            player_id (int): The unique integer ID for the player on Understat.
+        """
+        self.player_id = player_id
+        page_url = f"{self.BASE_URL}/{self.player_id}"
+
+        # Fetch all relevant data sets from the player's page
+        self._matches_data = client.get_data_from_html(page_url, "matchesData")
+        self._shots_data = client.get_data_from_html(page_url, "shotsData")
+        self._groups_data = client.get_data_from_html(page_url, "groupsData")
+
+    def get_match_logs(self, season: int) -> pd.DataFrame:
+        """
+        Returns a DataFrame of all matches played in a specific season.
+
+        Args:
+            season (int): The starting year of the season (e.g., 2023).
+
+        Returns:
+            A DataFrame with stats for each match played in that season.
+        """
+        # Filter the raw data for the specified season
+        season_matches = [
+            match for match in self._matches_data if int(match['season']) == season
+        ]
+        if not season_matches:
+            return pd.DataFrame()
+
+        df = pd.DataFrame(season_matches)
+        
+        # Select, rename, and format important columns
+        df['date'] = pd.to_datetime(df['date']).dt.date
+        df = df.rename(columns={'time': 'minutes', 'h_team': 'home_team', 'a_team': 'away_team'})
+
+        final_cols = [
+            'date', 'home_team', 'away_team', 'goals', 'assists', 'shots',
+            'key_passes', 'minutes', 'xG', 'xA', 'xGChain', 'xGBuildup'
+        ]
+        
+        return df[final_cols].sort_values(by="date").reset_index(drop=True)
+
+    def get_shot_data(self, season: int) -> pd.DataFrame:
+        """
+        Returns a DataFrame of all shots taken in a specific season.
+
+        Args:
+            season (int): The starting year of the season (e.g., 2023).
+
+        Returns:
+            A DataFrame where each row is a single shot.
+        """
+        # Filter the raw data for the specified season
+        season_shots = [
+            shot for shot in self._shots_data if int(shot['season']) == season
+        ]
+        if not season_shots:
+            return pd.DataFrame()
+
+        df = pd.DataFrame(season_shots)
+        
+        # Ensure key columns are numeric for analysis
+        numeric_cols = ['X', 'Y', 'xG', 'shots', 'goals']
+        for col in numeric_cols:
+            df[col] = pd.to_numeric(df[col])
+            
+        df['date'] = pd.to_datetime(df['date']).dt.date
+        
+        return df.sort_values(by="date").reset_index(drop=True)

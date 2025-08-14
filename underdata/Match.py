@@ -1,84 +1,71 @@
+# underdata/match.py
+
 """
-UnderData v0.1
+Define la clase Match para obtener datos detallados de un único partido.
 """
+
 import pandas as pd
+from typing import Dict, Any
+from . import client
 
-from selenium import webdriver
-from selenium.webdriver.common.by import By
 
-class Match():
-    """Class Match
+class Match:
     """
-    URL_BASE = "https://www.understat.com/match/"
-    match_id = None
-    team_home = None
-    team_away = None
-    match_score = None
-    goals_home = None
-    goals_away = None
-    match_stats = None
+    Representa un único partido, proporcionando acceso a los datos
+    de los tiros, alineaciones e información general.
+    """
+    BASE_URL = "https://understat.com/match"
 
-    def __init__(self, match_id="") -> None:
+    def __init__(self, match_id: int):
+        """
+        Inicializa el objeto Match y carga sus datos.
+
+        Args:
+            match_id (int): El ID único del partido en Understat.
+        """
         self.match_id = match_id
+        page_url = f"{self.BASE_URL}/{self.match_id}"
 
-    def _set_match(self, driver) -> None:
-        self.team_home = driver.find_elements(By.CSS_SELECTOR, ".block-match-result a")[0].text
-        self.team_away = driver.find_elements(By.CSS_SELECTOR, ".block-match-result a")[1].text
-        score = driver.find_element(By.CSS_SELECTOR, ".block-match-result").text
-        score = score.replace(self.team_home, "").replace(self.team_away, "").strip()
-        self.match_score = score
-        self.goals_home = int(score.split("-")[0])
-        self.goals_away = int(score.split("-")[1])
+        # Extraemos los tres conjuntos de datos de la página del partido
+        self._shots_data = client.get_data_from_html(page_url, "shotsData")
+        self._rosters_data = client.get_data_from_html(page_url, "rostersData")
+        self._match_data = client.get_data_from_html(page_url, "matchData")
 
-    def _set_match_stats(self, driver) -> None:
-        table = {}
-        thead = driver.find_elements(By.CSS_SELECTOR, "#match-rosters table thead tr th")
-
-        for idx in range(1, len(thead)):
-            table[thead[idx].text] = []
-
-        for _ in range(0,2):
-            tbody = driver.find_elements(By.CSS_SELECTOR, "#match-rosters table tbody tr td")
-
-            for idx in range(1, len(tbody), 10):
-                if tbody[idx-1].text:
-                    table[list(table.keys())[0]].append(tbody[idx].text)
-                    table[list(table.keys())[1]].append(tbody[idx+1].text)
-                    table[list(table.keys())[2]].append(int(tbody[idx+2].text))
-                    table[list(table.keys())[3]].append(int(tbody[idx+3].text))
-                    table[list(table.keys())[4]].append(int(tbody[idx+4].text))
-                    table[list(table.keys())[5]].append(int(tbody[idx+5].text))
-                    table[list(table.keys())[6]].append(int(tbody[idx+6].text))
-                    table[list(table.keys())[7]].append(tbody[idx+7].text)
-                    table[list(table.keys())[8]].append(tbody[idx+8].text)
-
-            element = driver.find_element(By.CSS_SELECTOR,
-                                            ".filters .filter label[for='team-away']")
-            element.click()
-
-        self.match_stats = pd.DataFrame(table)
-
-    def get_info(self) -> None:
+    def get_shot_data(self) -> pd.DataFrame:
         """
+        Devuelve un DataFrame donde cada fila es un tiro del partido.
 
-        Raises
-        ------
-        exc : Exception
-            Exception if something was wrong.
-
-        Returns
-        -------
-        str : str
-            Success string.
+        Ideal para crear mapas de tiros (shot maps).
         """
-        try:
-            driver = webdriver.Firefox()
-            driver.get(self.URL_BASE + self.match_id)
-            self._set_match(driver)
-            self._set_match_stats(driver)
-        except Exception as exc:
-            raise exc
-        finally:
-            driver.quit()
+        if not self._shots_data:
+            return pd.DataFrame()
 
-        return "Get info of " + self.team_home + " vs " + self.team_away
+        df = pd.DataFrame(self._shots_data)
+        
+        # Nos aseguramos de que las columnas importantes sean numéricas
+        numeric_cols = ['X', 'Y', 'xG']
+        for col in numeric_cols:
+            df[col] = pd.to_numeric(df[col])
+            
+        df['date'] = pd.to_datetime(df['date']).dt.date
+
+        return df
+
+    def get_rosters(self) -> Dict[str, pd.DataFrame]:
+        """
+        Devuelve las alineaciones de ambos equipos.
+
+        Returns:
+            Un diccionario con dos claves, 'home' y 'away', cada una
+            conteniendo un DataFrame con los jugadores de ese equipo.
+        """
+        home_roster = pd.DataFrame(self._rosters_data.get('h', []))
+        away_roster = pd.DataFrame(self._rosters_data.get('a', []))
+        
+        return {"home": home_roster, "away": away_roster}
+
+    def get_match_info(self) -> Dict[str, Any]:
+        """
+        Devuelve un diccionario con información general del partido.
+        """
+        return self._match_data
