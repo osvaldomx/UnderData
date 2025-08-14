@@ -74,7 +74,108 @@ class League:
         
         return final_table
 
-    @property
-    def get_players(self) -> pd.DataFrame:
-        """Devuelve un DataFrame de pandas con los datos de los jugadores."""
-        return pd.DataFrame(self._players_data)
+    def get_players(self, advanced: bool = False) -> pd.DataFrame:
+        """
+        Returns a DataFrame with player stats for the season.
+
+        Args:
+            advanced (bool, optional): If True, includes advanced metrics like
+                                       xGChain and xGBuildup. Defaults to False.
+        """
+        if not self._players_data:
+            return pd.DataFrame()
+
+        # Step 1: Create the full DataFrame from the raw data
+        players_df = pd.DataFrame(self._players_data)
+
+        # Ensure key stat columns are numeric for sorting
+        numeric_cols = ['games', 'time', 'goals', 'xG', 'assists', 'xA', 'shots']
+
+        for col in numeric_cols:
+            players_df[col] = pd.to_numeric(players_df[col])
+
+        # Calculate derived metrics
+        players_df['xG90'] = players_df['xG'] / (players_df['time'] / 90)
+        players_df['xA90'] = players_df['xA'] / (players_df['time'] / 90)
+        
+        # Step 2: Define the default and advanced column sets
+        default_cols = [
+            'id', 'player_name', 'team_title', 'position', 'games', 'time',
+            'goals', 'assists', 'shots', 'xG', 'xA', 'xG90', 'xA90'
+        ]
+
+        advanced_cols = [
+            'player_name', 'team_title', 'position', 'games', 'time',
+            'goals', 'xG', 'assists', 'xA', 'shots', 'key_passes',
+            'yellow_cards', 'red_cards', 'npg', 'npxG', 'xG90', 
+            'xA90', 'xGChain', 'xGBuildup'
+        ]
+
+        # Step 3: Choose columns based on the 'advanced' parameter
+        if advanced:
+            final_cols = advanced_cols
+        else:
+            final_cols = default_cols
+        
+        # Step 4: Return the filtered and sorted DataFrame
+        final_table = (
+            players_df[final_cols]
+            .sort_values(by='goals', ascending=False)
+            .reset_index(drop=True)
+        )
+        
+        return final_table
+    
+    def get_matches(self, matchday: int | None = None) -> pd.DataFrame:
+        """
+        Devuelve un DataFrame con los partidos de la temporada, 
+        agrupados por fecha.
+
+        Args:
+            matchday (int, optional): Filtra los partidos por una
+                                      jornada específica.
+                                      Defaults a None (todos los partidos).
+        """
+        if not self._teams_data:
+            return pd.DataFrame()
+
+        # Aplanamos los datos para tener una fila por partido y por equipo
+        per_match_df = pd.json_normalize(
+            self._teams_data,
+            record_path=['history'],
+            meta=['id', 'title']
+        )
+        per_match_df['date'] = pd.to_datetime(per_match_df['date'])
+
+        # Separamos los partidos de local y visitante
+        home_games = per_match_df[per_match_df['h_a'] == 'h']
+        away_games = per_match_df[per_match_df['h_a'] == 'a']
+
+        # Unimos los datos para tener una fila por partido
+        matches_df = pd.merge(
+            home_games,
+            away_games,
+            on='date',
+            suffixes=('_home', '_away')
+        )
+
+        # Filtramos por jornada si el usuario lo solicita
+        if matchday:
+            # Asumimos que la jornada se puede deducir del número de partidos jugados
+            # Esto puede necesitar un ajuste si hay jornadas dobles o aplazadas
+            matches_df = matches_df.iloc[(matchday-1)*10 : matchday*10]
+
+        # Seleccionamos y renombramos las columnas para el resultado final
+        matches_df = matches_df[[
+            'date', 'title_home', 'scored_home', 'scored_away', 'title_away'
+        ]].rename(columns={
+            'date': 'Fecha',
+            'title_home': 'Local',
+            'scored_home': 'Goles Local',
+            'scored_away': 'Goles Visitante',
+            'title_away': 'Visitante'
+        })
+
+        return matches_df.sort_values(by='Fecha').reset_index(drop=True)
+
+        
