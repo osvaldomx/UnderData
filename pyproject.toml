@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "UnderData" # O el nombre que elijas
+version = "0.2.0"
+authors = [
+  { name = "Osvaldo Trujillo", email = "osvaldo.trujillo.ingenieria@ejemplo.com" },
+]
+description = "A clean and fast Python client for football analytics data from Understat."
+readme = "README.md"
+requires-python = ">=3.13"
+license = { file = "LICENSE" }
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+# Aquí defines las dependencias que antes estaban en requirements.txt
+dependencies = [
+    "requests==2.32.3",
+    "beautifulsoup4==4.12.3",
+    "pandas==2.2.2",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "ruff"
+]
+docs = [
+    "sphinx",
+    "sphinx-rtd-theme",
+]
+
+[project.urls]
+Homepage = "https://github.com/osvaldomx/UnderData"
+Repository = "https://github.com/osvaldomx/UnderData"
+Changelog = "https://github.com/osvaldomx/UnderData/releases/tag/v0.2.0"
+Issues = "https://github.com/osvaldomx/UnderData/issues"

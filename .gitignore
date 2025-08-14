@@ -1,4 +1,19 @@
-*/__pycache__/*
-__pycache__
-venv
+# Archivos de la cache de Python
+__pycache__/
+*.pyc
+
+# Entornos virtuales
+venv/
+.venv/
+env/
+.env/
+
+# Archivos de dependencias y builds
+dist/
+build/
+*.egg-info/
+
+# Archivos del sistema operativo
+.DS_Store
+
 *.ipynb
