@@ -1,155 +1,80 @@
-"""
-UnderData v0.1
-"""
+# underdata/league.py
+
 import pandas as pd
+from typing import Dict, List
+from . import client
 
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-
-from . import LEAGUES
-
-class League():
-    """ Class League
-
-    Attributes
-    ----------
-    URL_BASE : str
-        Url base for query leagues.
-    league : str
-        League to get info.
-    seasons : list
-        List of seasons availables.
-    curr_week : dict
-        Dictionary with current matches
-    table : Pandas DataFrame
-        DataFrame with current qualification table
-    table_goals : Pandas DataFrame
-    	DataFrame with current top-10 scored players
+class League:
     """
+    Representa una liga y temporada, proporcionando acceso a sus datos.
+    """
+    BASE_URL = "https://understat.com/league"
 
-    URL_BASE = "https://www.understat.com/league/"
-    league = None
-    year = ""
-    seasons = []
-    table = None
-    table_goals = None
+    def __init__(self, league_name: str, season: int):
+        self.league_name = league_name
+        self.season = season
+        
+        page_url = f"{self.BASE_URL}/{self.league_name}/{self.season}"
 
+        # Los datos se cargan inmediatamente al crear el objeto.
+        self._teams_data = client.get_data_from_html(page_url, "teamsData")
+        self._players_data = client.get_data_from_html(page_url, "playersData")
 
-    def __init__(self, league='epl', year=""):
-        self.league = LEAGUES[league]
-        self.year = year
+    def get_teams(self, advanced: bool = False) -> pd.DataFrame:
+        """Devuelve un DataFrame de pandas con los datos de los equipos."""
+        if not self._teams_data:
+            return pd.DataFrame()
+        
+        # Step 1: Flatten the per-match data from the 'history' key
+        teams_df = pd.json_normalize(
+            self._teams_data,
+            record_path=['history'],
+            meta=['id', 'title']
+        )
 
-    def set_seasons(self, driver):
-        """Function to set seasons availables
+        # Ensure all stat columns are numeric for calculation
+        numeric_cols = [
+            'wins', 'draws', 'loses', 'scored', 'missed', 'pts',
+            'xG', 'xGA', 'npxG', 'npxGA', 'xpts'
+        ]
+        
+        for col in numeric_cols:
+            teams_df[col] = pd.to_numeric(teams_df[col])
 
-        Parameters
-        ----------
-        driver : Webdriver Object
-            Object for make querys to url.
-        """
-        list_options = driver.find_elements(By.CLASS_NAME, "custom-select-options")
-        options = list_options[1].find_elements(By.CSS_SELECTOR, "li")
-        list_seasons = []
+        # Step 2: Group by team and aggregate the stats for the season
+        league_table = teams_df.groupby(['id', 'title']).sum(numeric_only=True)
 
-        for opt in options:
-            list_seasons.append(opt.get_attribute('rel'))
+        # Step 3: Calculate derived metrics
+        league_table['M'] = league_table['wins'] + league_table['draws'] + league_table['loses']
 
-        if list_seasons:
-            self.seasons = list_seasons
+        # Step 4: Rename columns for final presentation
+        rename_map = {
+            'wins': 'W', 'draws': 'D', 'loses': 'L',
+            'scored': 'G', 'missed': 'GA', 'pts': 'PTS'
+        }
+        league_table = league_table.rename(columns=rename_map)
+        
+        # Step 5: Define column order, sort by points, and reset index
+        final_col_order = [
+            'M', 'W', 'D', 'L', 'G', 'GA', 'PTS', 'xG',
+            'xGA', 'xpts'
+        ]
 
-    def set_table(self, driver):
-        """Function to set curretn qualification table
+        advanced_metrics = ['npxG', 'npxGA', 'npxGD', 'ppda.att', 'ppda.def', 
+                            'ppda_allowed.att', 'ppda_allowed.def']
+        
+        if advanced:
+            final_col_order += advanced_metrics
+        
+        final_table = (
+            league_table[final_col_order]
+            .sort_values(by='PTS', ascending=False)
+            .reset_index()
+        )
+        
+        return final_table
 
-        Parameters
-        ----------
-        driver : Webdriver Object
-            Object for make querys to url.
-        """
-        table = {}
-        thead = driver.find_elements(By.XPATH, "//div[@id='league-chemp']/table/thead/tr/th")
-        table['N'] = []
-
-        for idx in range(1, len(thead)):
-            table[thead[idx].text] = []
-
-        tbody = driver.find_elements(By.XPATH, "//div[@id='league-chemp']/table/tbody/tr/td")
-
-        for idx in range(0, len(tbody), 12):
-            table['N'].append(int(tbody[idx].text))
-            table['Team'].append(tbody[idx+1].text)
-            table['M'].append(int(tbody[idx+2].text))
-            table['W'].append(int(tbody[idx+3].text))
-            table['D'].append(int(tbody[idx+4].text))
-            table['L'].append(int(tbody[idx+5].text))
-            table['G'].append(int(tbody[idx+6].text))
-            table['GA'].append(int(tbody[idx+7].text))
-            table['PTS'].append(int(tbody[idx+8].text))
-            table['xG'].append(tbody[idx+9].text)
-            table['xGA'].append(tbody[idx+10].text)
-            table['xPTS'].append(tbody[idx+11].text)
-
-        if table:
-            df_table = pd.DataFrame(table)
-            self.table = df_table
-
-    def set_score_players(self, driver):
-        """Function to set current top-10 scored players
-
-        Parameters
-        ----------
-        driver : Webdriver Object
-            Object for make querys to url.
-        """
-        table = {}
-        thead = driver.find_elements(By.XPATH, "//div[@id='league-players']/table/thead/tr/th")
-        table['N'] = []
-
-        for idx in range(1, len(thead)):
-            table[thead[idx].text] = []
-
-        tbody = driver.find_elements(By.XPATH, "//div[@id='league-players']/table/tbody/tr/td")
-
-        for idx in range(0, len(tbody), 11):
-            table['N'].append(int(tbody[idx].text))
-            table['Player'].append(tbody[idx+1].text)
-            table['Team'].append(tbody[idx+2].text)
-            table['Apps'].append(int(tbody[idx+3].text))
-            table['Min'].append(int(tbody[idx+4].text))
-            table['G'].append(int(tbody[idx+5].text))
-            table['A'].append(int(tbody[idx+6].text))
-            table['xG'].append(tbody[idx+7].text)
-            table['xA'].append(tbody[idx+8].text)
-            table['xG90'].append(float(tbody[idx+9].text))
-            table['xA90'].append(float(tbody[idx+10].text))
-            if int(tbody[idx].text) == 10:
-                break
-
-        if table:
-            df_table = pd.DataFrame(table)
-            self.table_goals = df_table
-
-    def get_info(self):
-        """Function to get general information of a league.
-
-        Raises
-        ------
-        exc : Exception
-            Exception if something was wrong
-
-        Returns
-        -------
-        str : str
-            Success string
-        """
-        try:
-            driver = webdriver.Firefox()
-            driver.get(self.URL_BASE + self.league + "/" + self.year)
-            self.set_seasons(driver)
-            self.set_table(driver)
-            self.set_score_players(driver)
-        except Exception as exc:
-            raise exc
-        finally:
-            driver.quit()
-
-        return "Get info of " + self.league
+    @property
+    def get_players(self) -> pd.DataFrame:
+        """Devuelve un DataFrame de pandas con los datos de los jugadores."""
+        return pd.DataFrame(self._players_data)
