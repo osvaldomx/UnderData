@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "UnderData" # O el nombre que elijas
 version = "0.2.0"
 authors = [
-  { name = "Osvaldo Trujillo", email = "osvaldo.trujillo.ingenieria@ejemplo.com" },
+  { name = "Osvaldo Trujillo", email = "osvaldo.trujillo.ingenieria@gmail.com" },
 ]
 description = "A clean and fast Python client for football analytics data from Understat."
 readme = "README.md"

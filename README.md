@@ -1,4 +1,4 @@
-# ⚽️ Understat 
+# ⚽️ UnderData
 
 [![License: MIT](https://img.shields.io/github/license/osvaldomx/underdata)](https://opensource.org/licenses/MIT)
 ![Python: 3.9](https://img.shields.io/badge/python-3.9-informational)
